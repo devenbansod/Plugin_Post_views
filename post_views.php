@@ -1,6 +1,6 @@
 <?php
 /*
- * Plugin Name: Post_views_2
+ * Plugin Name: Post_views_plugin
  * Plugin URI: http://www.sdmusics.co.nr
  * Description: Shows the Various Posts Veiws until now.
  * Version: 1.0
@@ -16,14 +16,24 @@ function Post_views($text) {
             $a=get_post_meta(get_the_id(),'Page_views');//Gets the newly added Meta data for the post.
             
         }
-        echo "<h5 style='text-align:center'>Post Views = ".$a[0]."</h5></br>";//Prints the Post's Views till now 
+        if($a[0]!=1){
+            echo "<a  class='entry-meta' style='text-align:center'>Post Views = ".($a[0]+1)."</a></br>";//Prints the Post's Views till now 
+        }
+        else echo "<a  class='entry-meta' style='text-align:center'>Post Views = ".($a[0])."</a></br>";//Prints the Post's Views till now
         if(isset($_GET['p']))//Checks if page is specifically one post. 
         {
             $a[0]=$a[0]+1;
         update_post_meta(get_the_id(),'Page_views',$a[0]);//Increases the Count of the views
         }    
         
-        echo $text;   //Echoes the rest of the Content of the Post
+        echo "</br>".$text;   //Echoes the rest of the Content of the Post
+}
+function add_options3() {
+    add_options_page("Post_views", "Post_views", 1, "Post_views", "Post_views_admin");//for Adding the Options page.
+}
+function Post_Views_admin() {
+    include 'post_views_admin.php';
 }
 add_action('the_content','Post_views');//Calls the plugin function.
+add_action('admin_menu','add_options3');//Adds the Options page Under Settings in the Dashboard
 ?>
