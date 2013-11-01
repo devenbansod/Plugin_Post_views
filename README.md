@@ -7,13 +7,15 @@ Donate Link: facebook.com/bansoddeven
 
 Tags: Post Views, Page Views
 
-Requires at least: Wordpress 3.7
+Requires at least: 3.7
 
-Tested Up to: Wordpress 3.7
+Tested Up to: 3.7
 
-Stable Tag: Plugin_Post_views
+Stable Tag: 1.0
 
 License: GPLv2
+
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 == Description ==
 Wordpress Plugin for viewing Number of views for the Post.
