@@ -4,65 +4,222 @@
  * It lets you view the Post-views for various posts together with the Author name and title of the Post
  * This may help you to Judge your various Authors and may also get the Idea of the tastes of their readers.
  */
-global $wpdb;
-echo "<h1>Posts' Views Settings</h1>"; //Echoes the title of this Page 
-$n=wp_count_posts('post');//Counts the number of Posts with type 'post'
-//echo $n->publish;
-$i=1;//Intiates $i
-echo '<h2></br>Current Statistics : </h2></br>//Echoes the Subheading and the Statistics Table
-    <div style="margin-left : 5%"><table border =1 style="margin-left : 10%;border-collapse:collapse; 
-    text-align: center;font-size: 120%" class="table_admin">
-    <th>S.No.</th>
-    <th>Post Name</th>
-    <th>Author Name</th>
-    <th>Post Views</th>';
-$k=$wpdb->get_results( "SELECT id FROM wp_posts where post_status ='publish'",ARRAY_N);
-//Gets an array of ids of all Posts that have been published. 
-for($i=1;$i<=$n->publish;$i++){
-    $g=$k[$i][0];
-    $m=$wpdb->get_results("SELECT post_author FROM wp_posts where ID = '$g'",ARRAY_N);
-    //Selects the Author names for those IDs
-    $h=$m[0][0];
-    $f=$wpdb->get_results("SELECT display_name FROM wp_users where ID = '$h'",ARRAY_N);
-    $l=get_post_meta($k[$i][0],'Page_views');
-    //Gets the Meta Data for the Post_views of the Respective posts
-    echo '<tr><td>'.$i.'</td>
-        <td>'.get_the_title($k[$i][0]).'</td>
-        <td>'.$f[0][0].'</td> 
-        <td>'.$l[0].'</td></tr>';//Echoes the Rest of the table.
-}
-echo '</table></div>';//Table echoed
-    echo "<h4 style='margin-left:17%'>Select a post that You want to reinitate Post views for and Press Submit : </h4>";
-echo '<div style="margin-left : 20%"></br>
-//Echoes the options for re-initiating the Post_views for a Particular Post.
-    <form method = "POST" action="options-general.php?page=Post_views&do_changes">
-    <select name="option1">';
-$t=$wpdb->get_results( "SELECT id FROM wp_posts where post_status ='publish'",ARRAY_N);
-for($i=1;$i<=$n->publish;$i++){
-    $l=get_post_meta($t[$i][0],'Page_views');
-    echo '<option>'.get_the_title($t[$i][0]).'</option>';
+
+?>
+<?
+
+//For the Reinitiation of The Views
+
+if ( isset ( $_GET['done']) && isset( $_POST['change']) )  {
+
+    if ( $_GET['done'] == 1 ) {
+
+        $post_to_be_changed = $_POST['change'];
+
+        $post_id = get_page_by_title($post_to_be_changed,OBJECT,$_GET['view'])->ID;
+
+        update_post_meta ( $post_id, 'post_views', '1');
+
+        ?>
+
+        <h4 style="text-align:center">The View for "<?php echo $_POST['change']; ?>" has been reinitiated to 1.</h4>
+
+<?php
     
-}
-    echo '</select>';
-    echo '<input type="submit" value="Submit"></div></form>';
-    
-    if(isset($_GET['do_changes']))
-    {
-        $a=$_POST['option1'];
-    //echo $a."</br>";
-    $r= get_page_by_title($a,ARRAY_N,'post');
-    //echo $r[0]."</br>";
-    update_post_meta($r[0],'Page_views',1);
-    echo '<input type=hidden name="changed" value="'.$a.'">';
-    header('location:options-general.php?page=Post_views&done_changes');
-    
-    }
-    if(isset($_GET['done_changes'])&&isset($_POST))
-    {
-        $a=$_POST['changed'];
-        echo "</br></br><p style='margin-left:15%'>The Post Views of the post titled 
-            ".$a." have been reinitiated to 1</br></p>";
     }
 
-        
+}
+
 ?>
+
+
+<!-- Main Items in the Admin Page -->
+<div class="wrap">
+
+    <?php
+        screen_icon();
+    ?>
+    <h2><strong>Posts' Views</strong> Settings</h2>
+
+    <div id = 'help' style="width : 60%; margin-left : 20%">
+        
+        <h3 style="text-align : center"> Click on Below Buttons to See the Respective Stats </h3>
+        
+        <a href = "<?php echo SITE_URL . '/wp-admin/options-general.php?page=Post_views&view=post'; ?>" class = "button" >Post Stats</a>
+
+        <a style = "float:right;" href = "<?php echo SITE_URL . '/wp-admin/options-general.php?page=Post_views&view=page'; ?>" class = "button" >Page Stats</a>
+
+    </div>
+<?php
+global $wpdb;
+
+$view = 'admin';
+
+//Checks if the Admin wants Post Views
+if ( isset( $_GET['view'] ) ) {
+    
+    if( $_GET['view'] == 'post' ) { 
+        $view = $_GET['view'];
+
+?>
+    <div id = "results" style = "width : 60%; margin-left : 20%" > 
+        <h3 style = "text-align:center"> Current Posts' Statistics </h3>
+
+        <table style = "border : 1; width : 90%; margin-left: 5%; text-align:center" >
+            <tr><th>Post ID</th>
+                <th>Post Name</th>
+                <th>Post Author</th>
+                <th>Post Views</th>
+            </tr>
+            
+<?php
+        $args = array(
+            'orderby'          => 'post_date',
+            'order'            => 'DESC',
+            'post_type'        => $view,
+            'post_status'      => 'publish',
+             ); 
+
+        $posts = get_posts($args);
+
+
+        foreach ($posts as $post_obj) {
+        
+            ?>
+            <tr>
+                <td><?php echo $post_obj->ID; ?></td>
+                <td><?php echo $post_obj->post_title; ?></td>
+            <?php
+
+                $user = get_userdata ( $post_obj->post_author );
+
+            ?>
+                <td><?php echo $user->display_name; ?></td>
+            <?php
+                $post_views = get_post_meta( $post_obj->ID, 'post_views', 1);
+            ?>
+                <td><?php echo $post_views; ?> </td>
+            </tr>
+<?php
+
+        }
+?>
+        
+        </table>
+
+        <br><br>
+    
+        <h4 style="text-align : center">Choose The Post/Page whose Views you want to Reset and Click Submit </h4>
+        <form style="width : 90%, margin-left : 5%" method = "POST" action = "<?php echo SITE_URL . '/wp-admin/options-general.php?page=Post_views&view=' . $view .'&done=1'; ?>">
+            <select style="margin-left : 30%; width : 40%" name="change" id = "change">
+                <?php
+                    foreach ($posts as $post_obj) {
+        
+            ?>
+            
+                <option><?php echo $post_obj->post_title; ?></option>
+            
+            <?php 
+
+                    }
+
+             ?>
+
+            </select>
+
+            <input type = "submit" value = "Submit" class="button"/>
+
+        </form>
+
+<?php
+    }
+
+// Checks if the Admin wants the Page Views
+    elseif( $_GET['view'] == 'page' ) { 
+        
+        $view = $_GET['view'];
+
+?>
+    <div id = "results" style = "width : 60%; margin-left : 20%" > 
+        <h3 style = "text-align:center"> Current Posts' Statistics </h3>
+
+        <table style = "border : 1; width : 90%; margin-left: 5%; text-align:center" >
+            <tr><th>Post ID</th>
+                <th>Post Name</th>
+                <th>Post Author</th>
+                <th>Post Views</th>
+            </tr>
+            
+<?php
+        $args = array(
+            'orderby'          => 'post_date',
+            'order'            => 'DESC',
+            'post_type'        => $view,
+            'post_status'      => 'publish',
+             ); 
+
+        $posts = get_posts($args);
+
+
+        foreach ($posts as $post_obj) {
+        
+            ?>
+            <tr>
+                <td><?php echo $post_obj->ID; ?></td>
+                <td><?php echo $post_obj->post_title; ?></td>
+            <?php
+
+                $user = get_userdata ( $post_obj->post_author );
+
+            ?>
+                <td><?php echo $user->display_name; ?></td>
+            <?php
+                $post_views = get_post_meta( $post_obj->ID, 'post_views', 1);
+            ?>
+                <td><?php echo $post_views; ?> </td>
+            </tr>
+<?php
+
+        }
+?>
+        
+        </table>
+    
+<br><br>
+    
+        <h4 style="text-align : center">Choose The Post/Page whose Views you want to Reset and Click Submit </h4>
+        <form style="width : 90%, margin-left : 5%" method = "POST" action = "<?php echo SITE_URL . '/wp-admin/options-general.php?page=Post_views&view=' . $view .'&done=1'; ?>">
+            <select style="margin-left : 30%; width : 40%" name="change" id = "change">
+                <?php
+                    foreach ($posts as $post_obj) {
+        
+            ?>
+            
+                <option><?php echo $post_obj->post_title; ?></option>
+            
+            <?php 
+
+                    }
+
+             ?>
+
+            </select>
+
+            <input type = "submit" value = "Submit" class="button"/>
+
+        </form>
+
+
+<?php
+
+    }
+
+}
+
+
+
+?>
+
+    </div>
+
+    <!-- Closes the Whole Content Div -->
